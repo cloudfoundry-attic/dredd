@@ -49,17 +49,16 @@ describe 'dredd application lifecycle' do
   let(:commenter) do
     Dredd::PullRequestCommenter.new(github_client, logger, template)
   end
-  let(:filter) do
-    Dredd::CompositeFilter.new(logger, [
-        Dredd::UsernameFilter.new(logger, config.allowed_usernames),
-        Dredd::EmailFilter.new(github_client, logger, config.allowed_emails),
-        Dredd::DomainFilter.new(github_client, logger, config.allowed_domains),
-        Dredd::OrganizationFilter.new(github_client, logger,
-                                      config.allowed_organizations),
-        Dredd::ActionFilter.new(github_client, logger, config.enabled_actions)
+  let(:whitelist) do
+    Dredd::CompositeWhitelist.new(logger, [
+        Dredd::UsernameWhitelist.new(logger, config.allowed_usernames),
+        Dredd::EmailWhitelist.new(github_client, logger, config.allowed_emails),
+        Dredd::DomainWhitelist.new(github_client, logger, config.allowed_domains),
+        Dredd::OrganizationWhitelist.new(github_client, logger, config.allowed_organizations),
+        Dredd::ActionWhitelist.new(github_client, logger, config.enabled_actions)
     ])
   end
-  let(:filtered_commenter) { Dredd::FilteredCommenter.new(commenter, filter) }
+  let(:whitelisted_commenter) { Dredd::WhitelistedCommenter.new(commenter, whitelist) }
 
   let(:secret) { config.callback_secret }
   let(:payload) { asset_contents('pull_request_opened.json') }
@@ -98,8 +97,7 @@ describe 'dredd application lifecycle' do
 
   def stub_email_fetching
     stub_request(:get, 'https://api.github.com/users/xoebus').to_return(
-        body: JSON.dump(email: 'xoebus@xoeb.us',
-                        organizations_url: organizations_url),
+        body: JSON.dump(email: 'xoebus@xoeb.us', organizations_url: organizations_url),
         headers: { 'Content-Type' => 'application/json' }
     )
   end
@@ -113,7 +111,7 @@ describe 'dredd application lifecycle' do
 
   describe 'commenting on pull requests' do
     before do
-      app.set :commenter, filtered_commenter
+      app.set :commenter, whitelisted_commenter
       app.set :secret, secret
 
       stub_email_fetching

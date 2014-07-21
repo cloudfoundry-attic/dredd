@@ -1,13 +1,13 @@
 require 'spec_helper'
 
 require 'hashie/mash'
-require 'dredd/filters/organization_filter'
+require 'dredd/whitelists/organization_whitelist'
 
-describe Dredd::OrganizationFilter do
+describe Dredd::OrganizationWhitelist do
   let(:client) { double('GitHub Client').as_null_object }
   let(:logger) { double('Logger').as_null_object }
   let(:allowed_organizations) { [] }
-  let(:filter) { described_class.new(client, logger, allowed_organizations) }
+  let(:whitelist) { described_class.new(client, logger, allowed_organizations) }
   let(:user_organizations) { [Hashie::Mash.new(login: 'cloudfoundry')] }
 
   let(:author) { 'xoebus' }
@@ -15,7 +15,7 @@ describe Dredd::OrganizationFilter do
     Dredd::PullRequest.new(1, 'xoebus/dredd', author, 'opened')
   end
 
-  describe '#filter?' do
+  describe '#whitelisted?' do
     before do
       client.should_receive(:user).with(author) do
         user = double('user')
@@ -30,7 +30,7 @@ describe Dredd::OrganizationFilter do
 
     context 'when allowed organizations list is empty' do
       it 'is false' do
-        expect(filter.filter?(pull_request)).to be_false
+        expect(whitelist.whitelisted?(pull_request)).to be_false
       end
     end
 
@@ -39,14 +39,14 @@ describe Dredd::OrganizationFilter do
         let(:allowed_organizations) { %w{cloudfoundry pivotal} }
 
         it 'is true' do
-          expect(filter.filter?(pull_request)).to be_true
+          expect(whitelist.whitelisted?(pull_request)).to be_true
         end
 
-        it 'logs that the pull request is not being filtered' do
+        it 'logs that the pull request is not being whitelisted' do
           logger.should_receive(:info)
           .with('allow: user orgs [cloudfoundry] in allowed orgs list')
 
-          filter.filter?(pull_request)
+          whitelist.whitelisted?(pull_request)
         end
 
         context 'but the organization is in a different case' do
@@ -55,14 +55,14 @@ describe Dredd::OrganizationFilter do
           end
 
           it 'is true' do
-            expect(filter.filter?(pull_request)).to be_true
+            expect(whitelist.whitelisted?(pull_request)).to be_true
           end
 
-          it 'logs that the pull request is being filtered' do
+          it 'logs that the pull request is being whitelisted' do
             logger.should_receive(:info)
               .with('allow: user orgs [cloudfoundry] in allowed orgs list')
 
-            filter.filter?(pull_request)
+            whitelist.whitelisted?(pull_request)
           end
         end
       end
@@ -71,14 +71,14 @@ describe Dredd::OrganizationFilter do
         let(:allowed_organizations) { %w{facebook} }
 
         it 'is false' do
-          expect(filter.filter?(pull_request)).to be_false
+          expect(whitelist.whitelisted?(pull_request)).to be_false
         end
 
-        it 'logs that the pull request is not being filtered' do
+        it 'logs that the pull request is not being whitelisted' do
           logger.should_receive(:info)
             .with('deny: no user orgs [cloudfoundry] in allowed orgs list')
 
-          filter.filter?(pull_request)
+          whitelist.whitelisted?(pull_request)
         end
       end
     end
@@ -87,7 +87,7 @@ describe Dredd::OrganizationFilter do
       let(:user_organizations) { [] }
 
       it 'is false' do
-        expect(filter.filter?(pull_request)).to be_false
+        expect(whitelist.whitelisted?(pull_request)).to be_false
       end
     end
   end

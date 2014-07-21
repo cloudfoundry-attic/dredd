@@ -1,22 +1,22 @@
 require 'dredd/pull_request'
 
 module Dredd
-  class OrganizationFilter
+  class OrganizationWhitelist
     def initialize(client, logger, allowed_organizations)
       @client = client
       @logger = logger
       @allowed_organizations = allowed_organizations
     end
 
-    def filter?(pull_request)
+    def whitelisted?(pull_request)
       username = pull_request.author
       organizations = organizations_for_user(username)
       intersection = (organizations & allowed_organizations)
-      filter = !intersection.empty?
+      whitelisted = !intersection.empty?
 
-      log_messages(filter, intersection, organizations)
+      log_messages(whitelisted, intersection, organizations)
 
-      filter
+      whitelisted
     end
 
     private
@@ -25,8 +25,8 @@ module Dredd
       @allowed_organizations.map(&:downcase)
     end
 
-    def log_messages(filter, intersection, organizations)
-      if filter
+    def log_messages(whitelisted, intersection, organizations)
+      if whitelisted
         orgs = intersection.join(', ')
         @logger.info "allow: user orgs [#{orgs}] in allowed orgs list"
       else
