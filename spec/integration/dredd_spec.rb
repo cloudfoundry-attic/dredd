@@ -14,7 +14,6 @@ describe 'dredd application lifecycle' do
     WebMock.allow_net_connect!
   end
 
-  let(:template) { File.read('config/template.md.erb') }
   let(:github_client) do
     Octokit::Client.new(
         login: config.username,
@@ -41,13 +40,15 @@ describe 'dredd application lifecycle' do
         'allowed_domains' => allowed_domains,
         'allowed_organizations' => allowed_organizations,
         'enabled_actions' => enabled_actions,
-        'repositories' => %w(username/repository 'username/other-repository')
+        'repositories' => %w(username/repository 'username/other-repository'),
+        'whitelisted_template' => 'whitelisted_template.md',
+        'non_whitelisted_template' => 'non_whitelisted_template.md',
     }
   end
   let(:config) { Dredd::Config.new(config_hash) }
   let(:logger) { double('Logger').as_null_object }
   let(:commenter) do
-    Dredd::PullRequestCommenter.new(github_client, logger, template)
+    Dredd::PullRequestCommenter.new(github_client, logger)
   end
   let(:whitelist) do
     Dredd::CompositeWhitelist.new(logger, [
@@ -58,7 +59,13 @@ describe 'dredd application lifecycle' do
         Dredd::ActionWhitelist.new(github_client, logger, config.enabled_actions)
     ])
   end
-  let(:whitelisted_commenter) { Dredd::WhitelistedCommenter.new(commenter, whitelist) }
+  let(:templates) do
+    {
+      whitelisted_template: nil,
+      non_whitelisted_template: config.non_whitelisted_template,
+    }
+  end
+  let(:whitelisted_commenter) { Dredd::WhitelistedCommenter.new(commenter, whitelist, templates) }
 
   let(:secret) { config.callback_secret }
   let(:payload) { asset_contents('pull_request_opened.json') }

@@ -24,3 +24,6 @@ repositories:
 
 enabled_actions:
   - opened
+
+non_whitelisted_template: config/template_1
+whitelisted_template: config/template_2

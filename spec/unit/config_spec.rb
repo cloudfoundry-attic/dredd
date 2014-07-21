@@ -51,6 +51,14 @@ describe Dredd::Config do
       it 'allows you to read the skip bootstrap' do
         expect(config.skip_bootstrap).to be_false
       end
+
+      it 'allows you to read the whitelisted_template' do
+        expect(config.whitelisted_template).to eq('config/template_2')
+      end
+
+      it 'allows you to read the non_whitelisted_template' do
+        expect(config.non_whitelisted_template).to eq('config/template_1')
+      end
     end
   end
 

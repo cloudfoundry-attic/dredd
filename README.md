@@ -107,6 +107,16 @@ This is the flag that disables bootstrapping of github hooks. Set this
 as `true` if Dredd does not have admin access to the GitHub repo and
 hooks are already created.
 
+#### non_whitelisted_template
+
+This is the template Dredd will use to comment when the requester
+does not exist in any whitelist.
+
+#### whitelisted_template
+
+This is the optional template Dredd will use to comment in the affirmative
+when the requester already exists in the whitelist.
+
 ## License
 
     The MIT License (MIT)

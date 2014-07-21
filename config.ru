@@ -5,7 +5,6 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), 'lib')
 require 'dredd'
 
 config = Dredd::Config.from_file('config/config.yml')
-template = File.read('config/template.md.erb')
 
 github_client = Octokit::Client.new(login: config.username,
     oauth_token: config.token)
@@ -33,8 +32,12 @@ composite_whitelist = Dredd::CompositeWhitelist.new(logger, [
     Dredd::ActionWhitelist.new(github_client, logger, config.enabled_actions)
 ])
 
-commenter = Dredd::PullRequestCommenter.new(github_client, logger, template)
-whitelisted_commenter = Dredd::WhitelistedCommenter.new(commenter, composite_whitelist)
+commenter = Dredd::PullRequestCommenter.new(github_client, logger)
+templates = {
+  whitelisted_template: config.whitelisted_template,
+  non_whitelisted_template: config.non_whitelisted_template,
+}
+whitelisted_commenter = Dredd::WhitelistedCommenter.new(commenter, composite_whitelist, templates)
 
 Dredd::DreddApp.set :commenter, whitelisted_commenter
 Dredd::DreddApp.set :secret, config.callback_secret

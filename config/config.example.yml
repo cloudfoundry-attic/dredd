@@ -25,3 +25,6 @@ skip_bootstrap: false
 repositories:
   - username/repository
   - username/other-repository
+
+non_whitelisted_template: config/non_whitelisted_template.md.erb
+whitelisted_template: config/whitelisted_template.md.erb

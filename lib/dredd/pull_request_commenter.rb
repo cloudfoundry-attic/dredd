@@ -2,27 +2,26 @@ require 'erb'
 
 module Dredd
   class PullRequestCommenter
-    def initialize(client, logger, template)
+    def initialize(client, logger)
       @client = client
       @logger = logger
-      @template = ERB.new(template)
     end
 
-    def comment(pull_request)
+    def comment(pull_request, template)
       username = pull_request.author
       id = pull_request.id
       repository = pull_request.repository
 
       @logger.info("commenting on #{repository}##{id}")
-      comment_text = render_comment(username)
+      comment_text = render_comment(username, ERB.new(template))
       @client.add_comment(repository, id, comment_text)
     end
 
     private
 
-    def render_comment(username)
+    def render_comment(username, template)
       context = RenderingContext.new(username)
-      @template.result(context.get_binding)
+      template.result(context.get_binding)
     end
 
     class RenderingContext

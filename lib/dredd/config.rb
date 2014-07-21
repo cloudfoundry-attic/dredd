@@ -55,6 +55,14 @@ module Dredd
       get('skip_bootstrap', false)
     end
 
+    def whitelisted_template
+      get('whitelisted_template')
+    end
+
+    def non_whitelisted_template
+      get('non_whitelisted_template')
+    end
+
     private
 
     def get(key, default = nil)
